@@ -70,8 +70,8 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<(String, usize)>, E
         let commit_time =
             get_time(commit_seconds).ok_or(Error::from_str("Can't fetch commit's time"))?;
 
-        let time_diff = commit_time - previous_commit_time;
-        let time_diff_minutes = time_diff.num_minutes();
+        let time_diff = previous_commit_time - commit_time;
+        let time_diff_minutes = time_diff.num_minutes().abs();
 
         if (time_diff_minutes as usize) < MAX_COMMIT_DIFF_IN_MINUTES {
             entry.1 += time_diff_minutes as usize;

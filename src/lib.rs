@@ -78,6 +78,9 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<(String, usize)>, E
         } else {
             entry.1 += FIRST_COMMIT_ADDITION_IN_MINUTES;
         }
+
+        // Save current commit
+        entry.0 = Some(commit);
     }
 
     let mut commit_map: Vec<_> = commit_map.into_iter().map(|e| (e.0, e.1 .1)).collect();

@@ -56,7 +56,7 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<(String, usize)>, E
         let entry = commit_map.entry(author).or_insert((None, 0));
 
         // First commit
-        if (*entry).0.is_none() {
+        if entry.0.is_none() {
             *entry = (Some(commit), 120);
             continue;
         }

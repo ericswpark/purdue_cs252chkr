@@ -22,8 +22,10 @@ fn main() {
 
     for entry in metadata {
         println!(
-            "{}: {} commits ({} minutes)",
-            entry.0, entry.1 .0, entry.1 .1
+            "{}: {} commits ({})",
+            entry.0,
+            entry.1 .0,
+            get_humanized_minutes(entry.1 .1 as i64)
         );
     }
 }

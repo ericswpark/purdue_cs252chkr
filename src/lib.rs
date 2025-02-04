@@ -1,5 +1,7 @@
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Duration, Local, Utc};
+use chrono_humanize::Accuracy::Precise;
 use chrono_humanize::HumanTime;
+use chrono_humanize::Tense::Present;
 use git2::{Commit, Error, Repository};
 use std::collections::HashMap;
 
@@ -104,4 +106,12 @@ pub fn get_formatted_time(time: DateTime<Local>) -> String {
 
 pub fn get_humanized_time(time: DateTime<Local>) -> String {
     HumanTime::from(time - Local::now()).to_string()
+}
+
+pub fn get_humanized_minutes(minutes: i64) -> String {
+    let duration = Duration::minutes(minutes);
+    get_humanized_duration(&duration)
+}
+pub fn get_humanized_duration(duration: &Duration) -> String {
+    HumanTime::from(*duration).to_text_en(Precise, Present)
 }

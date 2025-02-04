@@ -13,7 +13,7 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
     revwalk.set_sorting(git2::Sort::REVERSE)?;
 
     if let Some(first_commit_id) = revwalk.next() {
-        return Ok(repo.find_commit(first_commit_id?)?);
+        return repo.find_commit(first_commit_id?);
     }
     Err(Error::from_str(
         "This repository does not have any commits!",

@@ -10,7 +10,11 @@ fn main() {
     let initial_commit_time_raw = initial_commit.time().seconds();
     let initial_commit_time = get_localized_time(initial_commit_time_raw).unwrap();
 
-    println!("Initial commit was made at {} ({})", get_formatted_time(initial_commit_time), get_humanized_time(initial_commit_time));
+    println!(
+        "Initial commit was made at {} ({})",
+        get_formatted_time(initial_commit_time),
+        get_humanized_time(initial_commit_time)
+    );
 
     for entry in commit_counts {
         println!("{}: {} commits", entry.0, entry.1);

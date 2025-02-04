@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 chrono = "0.4.39"
+chrono-humanize = "0.2.3"
 git2 = "0.20.0"

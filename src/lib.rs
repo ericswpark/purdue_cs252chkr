@@ -63,10 +63,12 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<(String, usize)>, E
 
         // Calculate difference in minutes
         let previous_commit_seconds = entry.0.to_owned().unwrap().time().seconds();
-        let previous_commit_time = get_time(previous_commit_seconds).ok_or(Error::from_str("Can't fetch previous commit's time"))?;
+        let previous_commit_time = get_time(previous_commit_seconds)
+            .ok_or(Error::from_str("Can't fetch previous commit's time"))?;
 
         let commit_seconds = commit.time().seconds();
-        let commit_time = get_time(commit_seconds).ok_or(Error::from_str("Can't fetch commit's time"))?;
+        let commit_time =
+            get_time(commit_seconds).ok_or(Error::from_str("Can't fetch commit's time"))?;
 
         let time_diff = commit_time - previous_commit_time;
         let time_diff_minutes = time_diff.num_minutes();
@@ -78,7 +80,7 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<(String, usize)>, E
         }
     }
 
-    let mut commit_map: Vec<_> = commit_map.into_iter().map(|e| (e.0, e.1.1)).collect();
+    let mut commit_map: Vec<_> = commit_map.into_iter().map(|e| (e.0, e.1 .1)).collect();
     commit_map.sort_by(|a, b| b.1.cmp(&a.1));
 
     Ok(commit_map)

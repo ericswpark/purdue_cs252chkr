@@ -1,6 +1,6 @@
+use cs252chkr::*;
 use std::collections::HashMap;
 use std::hash::Hash;
-use cs252chkr::*;
 
 fn main() {
     // Attempt to open repository in current directory, or start walking up
@@ -21,14 +21,14 @@ fn main() {
     );
 
     for entry in metadata {
-        println!("{}: {} commits ({} minutes)", entry.0, entry.1.0, entry.1.1);
+        println!(
+            "{}: {} commits ({} minutes)",
+            entry.0, entry.1 .0, entry.1 .1
+        );
     }
 }
 
-fn zip_by_first<T: Eq + Hash, U, V>(
-    vec1: Vec<(T, U)>,
-    vec2: Vec<(T, V)>,
-) -> Vec<(T, (U, V))> {
+fn zip_by_first<T: Eq + Hash, U, V>(vec1: Vec<(T, U)>, vec2: Vec<(T, V)>) -> Vec<(T, (U, V))> {
     let mut map: HashMap<T, U> = vec1.into_iter().collect();
     let mut result = Vec::new();
 

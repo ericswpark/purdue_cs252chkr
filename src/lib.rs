@@ -75,7 +75,7 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<(String, usize)>, E
         let time_diff = previous_commit_time - commit_time;
         let time_diff_minutes = time_diff.num_minutes().abs();
 
-        if (time_diff_minutes as usize) < MAX_COMMIT_DIFF_IN_MINUTES {
+        if (time_diff_minutes as usize) < MAX_SESSION_IDLE_IN_MINUTES {
             entry.1 += time_diff_minutes as usize;
         } else {
             entry.1 += SESSION_START_ADDITION_IN_MINUTES;

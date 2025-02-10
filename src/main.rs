@@ -30,6 +30,10 @@ fn main() {
     }
 }
 
+/// Zip two arrays of CommitMetadata objects into tuples for easy access
+///
+/// * `vec1` - Vec of objects that implement the CommitMetadata trait
+/// * `vec2` - Vec of objects that implement the CommitMetadata trait
 fn zip_by_author<T, U, V>(vec1: Vec<U>, vec2: Vec<V>) -> Vec<(T, (U, V))>
 where
     T: Eq + Hash,

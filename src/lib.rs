@@ -59,7 +59,7 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<(String, usize)>, E
 
         // First commit
         if entry.0.is_none() {
-            *entry = (Some(commit), FIRST_COMMIT_ADDITION_IN_MINUTES);
+            *entry = (Some(commit), SESSION_START_ADDITION_IN_MINUTES);
             continue;
         }
 
@@ -78,7 +78,7 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<(String, usize)>, E
         if (time_diff_minutes as usize) < MAX_COMMIT_DIFF_IN_MINUTES {
             entry.1 += time_diff_minutes as usize;
         } else {
-            entry.1 += FIRST_COMMIT_ADDITION_IN_MINUTES;
+            entry.1 += SESSION_START_ADDITION_IN_MINUTES;
         }
 
         // Save current commit

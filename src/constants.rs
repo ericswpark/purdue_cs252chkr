@@ -1,2 +1,2 @@
 pub const MAX_COMMIT_DIFF_IN_MINUTES: usize = 120;
-pub const FIRST_COMMIT_ADDITION_IN_MINUTES: usize = 120;
+pub const SESSION_START_ADDITION_IN_MINUTES: usize = 120;

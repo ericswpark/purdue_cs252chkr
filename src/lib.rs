@@ -59,7 +59,7 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<(String, usize)>, E
 
         // First commit
         if entry.0.is_none() {
-            *entry = (Some(commit), 120);
+            *entry = (Some(commit), FIRST_COMMIT_ADDITION_IN_MINUTES);
             continue;
         }
 

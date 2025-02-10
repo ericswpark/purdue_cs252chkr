@@ -1,6 +1,5 @@
 use cs252chkr::*;
 use std::collections::HashMap;
-use std::hash::Hash;
 
 fn main() {
     // Attempt to open repository in current directory, or start walking up
@@ -34,18 +33,17 @@ fn main() {
 ///
 /// * `vec1` - Vec of objects that implement the CommitMetadata trait
 /// * `vec2` - Vec of objects that implement the CommitMetadata trait
-fn zip_by_author<T, U, V>(vec1: Vec<U>, vec2: Vec<V>) -> Vec<(T, (U, V))>
+fn zip_by_author<U, V>(vec1: Vec<U>, vec2: Vec<V>) -> Vec<(String, (U, V))>
 where
-    T: Eq + Hash,
     U: CommitMetadata,
     V: CommitMetadata,
 {
-    let mut map: HashMap<T, U> = vec1.into_iter().map(|x| (x.author(), x)).collect();
+    let mut map: HashMap<String, U> = vec1.into_iter().map(|x| (x.author(), x)).collect();
     let mut result = Vec::new();
 
-    for (key, val2) in vec2 {
-        if let Some(val1) = map.remove(&key) {
-            result.push((key, (val1, val2)));
+    for val2 in vec2 {
+        if let Some(val1) = map.remove(&val2.author()) {
+            result.push((val1.author(), (val1, val2)));
         }
     }
 

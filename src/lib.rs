@@ -8,6 +8,8 @@ use chrono_humanize::Tense::Present;
 use git2::{Commit, Error, Repository};
 use std::collections::HashMap;
 
+/// Returns a git2 Repository object pointing to the repository in the current directory (or the
+/// parent directories of the current directory)
 pub fn get_repository() -> Repository {
     Repository::discover(".").expect(
         "Can't find git repository (attempted traversal to root).
@@ -15,12 +17,19 @@ Are you sure you're in the project folder?",
     )
 }
 
+/// Gets the initial commit from the provided repository
+///
+/// * `repo` - Repository reference to fetch the initial commit from
 pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
+    // Create git revwalk to iterate over the commits in the provided repository
     let mut revwalk = repo.revwalk()?;
+    // Set options for iteration
     revwalk.push_head()?;
     revwalk.set_sorting(git2::Sort::REVERSE)?;
 
+    // Checks if the first commit exists or return error if there are no commits
     if let Some(first_commit_id) = revwalk.next() {
+        // Find commit using commit ID
         return repo.find_commit(first_commit_id?);
     }
     Err(Error::from_str(
@@ -28,93 +37,144 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
     ))
 }
 
+/// Get the number of commits made by each author in the given repository
+///
+/// * `repo`: Repository reference to find commits and authors from
 pub fn get_commit_counts(repo: &Repository) -> Result<Vec<(String, usize)>, Error> {
+    // Create git revwalk to iterate over the commits in the provided repository
     let mut revwalk = repo.revwalk()?;
+    // Set options for iteration
     revwalk.push_head()?;
     revwalk.set_sorting(git2::Sort::TIME)?;
 
     let mut commit_map: HashMap<String, usize> = HashMap::new();
 
+    // For each commit ID found during iteration...
     for oid in revwalk {
+        // Find the commit using the ID
         let commit = repo.find_commit(oid?)?;
+        // Get the author name (or set as '-' if there is no authorship info associated with the
+        // commit
         let author = commit.author().name().unwrap_or("-").to_string();
+
+        // Insert count into commit_map
         *commit_map.entry(author).or_insert(0) += 1;
     }
 
+    // Collect entries from HashMap into array
     let mut commit_map: Vec<_> = commit_map.into_iter().collect();
+    // Sort by number of commits (descending order)
     commit_map.sort_by(|a, b| b.1.cmp(&a.1));
 
     Ok(commit_map)
 }
 
-/// Implements git-hours algorithm
+/// Get the estimate of working hours spent on the repository
+///
+/// This function uses and implements the git-hours algorithm found here:
+/// https://github.com/kimmobrunfeldt/git-hours
+///
+/// * `repo` - Repository reference to generate estimate from
 pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<(String, usize)>, Error> {
+    // Create git revwalk to iterate over the commits in the provided repository
     let mut revwalk = repo.revwalk()?;
+    // Set options for iteration
     revwalk.push_head()?;
     revwalk.set_sorting(git2::Sort::REVERSE & git2::Sort::TIME)?;
 
     let mut commit_map: HashMap<String, (Option<Commit>, usize)> = HashMap::new();
 
+    // For each commit ID found during iteration...
     for oid in revwalk {
+        // Find the commit using the ID
         let commit = repo.find_commit(oid?)?;
+        // Get the author name (or set as '-' if there is no authorship info associated with the
+        // commit
         let author = commit.author().name().unwrap_or("-").to_string();
+        // Get or set entry to compare author information
         let entry = commit_map.entry(author).or_insert((None, 0));
 
-        // First commit
+        // First commit made by author
         if entry.0.is_none() {
             *entry = (Some(commit), SESSION_START_ADDITION_IN_MINUTES);
             continue;
         }
 
-        // Calculate difference in minutes
+        // Get time of the previous commit made by this author
         let previous_commit_seconds = entry.0.to_owned().unwrap().time().seconds();
         let previous_commit_time = get_time(previous_commit_seconds)
             .ok_or(Error::from_str("Can't fetch previous commit time"))?;
 
+        // Get time of the current commit
         let commit_seconds = commit.time().seconds();
         let commit_time =
             get_time(commit_seconds).ok_or(Error::from_str("Can't fetch commit time"))?;
 
+        // Get time difference between the two commits above
         let time_diff = previous_commit_time - commit_time;
         let time_diff_minutes = time_diff.num_minutes().abs();
 
+        // If the difference counts as one session...
         if (time_diff_minutes as usize) < MAX_SESSION_IDLE_IN_MINUTES {
+            // ...add the duration as the time worked on during this session
             entry.1 += time_diff_minutes as usize;
         } else {
+            // Start of a new session, add session start minutes
             entry.1 += SESSION_START_ADDITION_IN_MINUTES;
         }
 
-        // Save current commit
+        // Save current commit reference to compare in next iteration
         entry.0 = Some(commit);
     }
 
+    // Collect all entries in HashMap into array
     let mut commit_map: Vec<_> = commit_map.into_iter().map(|e| (e.0, e.1 .1)).collect();
+    // Sort by number of minutes worked (in descending order)
     commit_map.sort_by(|a, b| b.1.cmp(&a.1));
 
     Ok(commit_map)
 }
 
+/// Get DateTime object from seconds
+///
+/// * `seconds` - seconds to convert into DateTime
 pub fn get_time(seconds: i64) -> Option<DateTime<Utc>> {
     DateTime::from_timestamp(seconds, 0)
 }
 
+/// Get localized time from seconds
+///
+/// * `seconds` - seconds to convert into localized DateTime
 pub fn get_localized_time(seconds: i64) -> Option<DateTime<Local>> {
     let time_utc = get_time(seconds)?;
     Some(time_utc.with_timezone(&Local))
 }
 
+/// Get time formatted into a human-readable format from a localized DateTime
+///
+/// * `time` - localized DateTime to get formatted human-readable date/time from
 pub fn get_formatted_time(time: DateTime<Local>) -> String {
     time.format("%Y-%m-%d %H:%M:%S").to_string()
 }
 
+/// Get "humanized" (X minutes ago, X hours ago) time from a localized DateTime
+///
+/// * `time` - localized DateTime to get "humanized" date/time from
 pub fn get_humanized_time(time: DateTime<Local>) -> String {
     HumanTime::from(time - Local::now()).to_string()
 }
 
+/// Get "humanized" (X hours X minutes) time from minutes
+///
+/// * `minutes` - minutes to convert into "humanized" time
 pub fn get_humanized_minutes(minutes: i64) -> String {
     let duration = Duration::minutes(minutes);
     get_humanized_duration(&duration)
 }
+
+/// Get "humanized" (X hours X minutes) time from duration
+///
+/// * `duration` - Duration reference to convert into "humanized" time
 pub fn get_humanized_duration(duration: &Duration) -> String {
     HumanTime::from(*duration).to_text_en(Precise, Present)
 }

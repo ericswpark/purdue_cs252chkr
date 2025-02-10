@@ -1,4 +1,3 @@
-
 /// Minutes to add to the start of each coding session
 ///
 /// A session is defined in conjunction with the `MAX_SESSION_IDLE_IN_MINUTES` constant below.

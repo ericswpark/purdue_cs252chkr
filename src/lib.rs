@@ -1,15 +1,18 @@
 mod constants;
 
+use crate::constants::*;
 use chrono::{DateTime, Duration, Local, Utc};
 use chrono_humanize::Accuracy::Precise;
 use chrono_humanize::HumanTime;
 use chrono_humanize::Tense::Present;
 use git2::{Commit, Error, Repository};
 use std::collections::HashMap;
-use crate::constants::*;
 
 pub fn get_repository() -> Repository {
-    Repository::discover(".").expect("Can't find git repository (attempted traversal to root). Are you sure you're in the project folder?")
+    Repository::discover(".").expect(
+        "Can't find git repository (attempted traversal to root).
+Are you sure you're in the project folder?",
+    )
 }
 
 pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {

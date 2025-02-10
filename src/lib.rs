@@ -8,6 +8,11 @@ use chrono_humanize::Tense::Present;
 use git2::{Commit, Error, Repository};
 use std::collections::HashMap;
 
+/// Shared commit metadata trait for zipping and printing metadata information
+pub trait CommitMetadata {
+    fn author(&self) -> String;
+}
+
 /// Returns a git2 Repository object pointing to the repository in the current directory (or the
 /// parent directories of the current directory)
 pub fn get_repository() -> Repository {
@@ -37,10 +42,24 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
     ))
 }
 
+/// Structure to store git commit count for each author
+pub struct CommitCount {
+    // Author name
+    author: String,
+    // Author commit count
+    pub count: usize,
+}
+
+impl CommitMetadata for CommitCount {
+    fn author(&self) -> String {
+        self.author.clone()
+    }
+}
+
 /// Get the number of commits made by each author in the given repository
 ///
 /// * `repo`: Repository reference to find commits and authors from
-pub fn get_commit_counts(repo: &Repository) -> Result<Vec<(String, usize)>, Error> {
+pub fn get_commit_counts(repo: &Repository) -> Result<Vec<CommitCount>, Error> {
     // Create git revwalk to iterate over the commits in the provided repository
     let mut revwalk = repo.revwalk()?;
     // Set options for iteration
@@ -62,11 +81,31 @@ pub fn get_commit_counts(repo: &Repository) -> Result<Vec<(String, usize)>, Erro
     }
 
     // Collect entries from HashMap into array
-    let mut commit_map: Vec<_> = commit_map.into_iter().collect();
+    let mut commit_map: Vec<_> = commit_map
+        .into_iter()
+        .map(|x| CommitCount {
+            author: x.0,
+            count: x.1,
+        })
+        .collect();
     // Sort by number of commits (descending order)
-    commit_map.sort_by(|a, b| b.1.cmp(&a.1));
+    commit_map.sort_by(|a, b| b.count.cmp(&a.count));
 
     Ok(commit_map)
+}
+
+/// Structure to store git working time estimate for each author
+pub struct CommitTime {
+    // Author name
+    author: String,
+    // Time spent on repository (in minutes)
+    pub time: usize,
+}
+
+impl CommitMetadata for CommitTime {
+    fn author(&self) -> String {
+        self.author.clone()
+    }
 }
 
 /// Get the estimate of working hours spent on the repository
@@ -75,7 +114,7 @@ pub fn get_commit_counts(repo: &Repository) -> Result<Vec<(String, usize)>, Erro
 /// https://github.com/kimmobrunfeldt/git-hours
 ///
 /// * `repo` - Repository reference to generate estimate from
-pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<(String, usize)>, Error> {
+pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<CommitTime>, Error> {
     // Create git revwalk to iterate over the commits in the provided repository
     let mut revwalk = repo.revwalk()?;
     // Set options for iteration
@@ -128,9 +167,15 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<(String, usize)>, E
     }
 
     // Collect all entries in HashMap into array
-    let mut commit_map: Vec<_> = commit_map.into_iter().map(|e| (e.0, e.1 .1)).collect();
+    let mut commit_map: Vec<_> = commit_map
+        .into_iter()
+        .map(|e| CommitTime {
+            author: e.0,
+            time: e.1 .1,
+        })
+        .collect();
     // Sort by number of minutes worked (in descending order)
-    commit_map.sort_by(|a, b| b.1.cmp(&a.1));
+    commit_map.sort_by(|a, b| b.time.cmp(&a.time));
 
     Ok(commit_map)
 }

@@ -6,7 +6,7 @@ use chrono::{DateTime, Duration, Local, Utc};
 use chrono_humanize::Accuracy::Precise;
 use chrono_humanize::HumanTime;
 use chrono_humanize::Tense::Present;
-use git2::{Commit, Error, Repository};
+use git2::{Commit, DiffOptions, Error, Repository};
 use std::collections::HashMap;
 
 /// Shared commit metadata trait for zipping and printing metadata information
@@ -43,31 +43,35 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
     ))
 }
 
-/// Structure to store git commit count for each author
-pub struct CommitCount {
+/// Structure to store git commit stats for each author
+pub struct CommitStats {
     // Author name
     author: String,
     // Author commit count
     pub count: usize,
+    // Line insertions
+    pub insertions: usize,
+    // Line deletions
+    pub deletions: usize,
 }
 
-impl CommitMetadata for CommitCount {
+impl CommitMetadata for CommitStats {
     fn author(&self) -> String {
         self.author.clone()
     }
 }
 
-/// Get the number of commits made by each author in the given repository
+/// Get the commit statistics for each author in the given repository
 ///
 /// * `repo`: Repository reference to find commits and authors from
-pub fn get_commit_counts(repo: &Repository) -> Result<Vec<CommitCount>, Error> {
+pub fn get_commit_stats(repo: &Repository) -> Result<Vec<CommitStats>, Error> {
     // Create git revwalk to iterate over the commits in the provided repository
     let mut revwalk = repo.revwalk()?;
     // Set options for iteration
     revwalk.push_head()?;
     revwalk.set_sorting(git2::Sort::TIME)?;
 
-    let mut commit_map: HashMap<String, usize> = HashMap::new();
+    let mut commit_map: HashMap<String, CommitStats> = HashMap::new();
 
     // For each commit ID found during iteration...
     for oid in revwalk {
@@ -77,18 +81,41 @@ pub fn get_commit_counts(repo: &Repository) -> Result<Vec<CommitCount>, Error> {
         // commit
         let author = commit.author().name().unwrap_or("-").to_string();
 
+        // Get commit tree for diffing with previous commit
+        let commit_tree = commit.tree()?;
+        let mut insertions = 0;
+        let mut deletions = 0;
+        // Only get insertion/deletion count if parent commit exists
+        if let Some(parent_tree) = commit.parent(0).ok().as_ref().and_then(|c| c.tree().ok()) {
+            let diff = repo.diff_tree_to_tree(
+                Some(&parent_tree),
+                Some(&commit_tree),
+                Some(&mut DiffOptions::new()),
+            );
+            if let Ok(diff) = diff {
+                let stats = diff.stats();
+                if let Ok(stats) = stats {
+                    insertions = stats.insertions();
+                    deletions = stats.deletions();
+                }
+            }
+        }
+
         // Insert count into commit_map
-        *commit_map.entry(author).or_insert(0) += 1;
+        let entry = commit_map.entry(author.clone()).or_insert(CommitStats {
+            author,
+            count: 0,
+            insertions: 0,
+            deletions: 0,
+        });
+
+        entry.count += 1;
+        entry.insertions += insertions;
+        entry.deletions += deletions;
     }
 
     // Collect entries from HashMap into array
-    let mut commit_map: Vec<_> = commit_map
-        .into_iter()
-        .map(|x| CommitCount {
-            author: x.0,
-            count: x.1,
-        })
-        .collect();
+    let mut commit_map: Vec<_> = commit_map.into_iter().map(|x| x.1).collect();
     // Sort by number of commits (descending order)
     commit_map.sort_by(|a, b| b.count.cmp(&a.count));
 

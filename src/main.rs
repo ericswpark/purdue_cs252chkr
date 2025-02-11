@@ -1,4 +1,4 @@
-use cs252chkr::constants::SENTRY_DSN_URL;
+use cs252chkr::constants::{INSERTION_DELETION_WARNING_RATIO, SENTRY_DSN_URL};
 use cs252chkr::*;
 use sentry::ClientInitGuard;
 use std::collections::HashMap;
@@ -21,16 +21,47 @@ fn main() {
     );
 
     // Fetch author metadata (commit count, total session duration) from repository
-    let commit_counts = get_commit_counts(&repo).expect("Failed to get commit counts");
+    let commit_counts = get_commit_stats(&repo).expect("Failed to get commit counts");
     let estimates = get_estimate_minutes(&repo).expect("Failed to get estimate minutes");
     let metadata = zip_by_author(commit_counts, estimates);
     for entry in metadata {
-        println!(
-            "{}: {} commits ({})",
-            entry.0,
-            entry.1 .0.count,
-            get_humanized_minutes(entry.1 .1.time as i64)
-        );
+        print_commit_stats(&entry.1 .0, &entry.1 .1);
+    }
+}
+
+/// Formats and prints commit statistics
+///
+/// Warning: it is up to the caller to make sure that the stat and time objects belong to the same
+/// author!
+///
+/// * `stat` - commit statistics to print
+/// * `time` - time spent information for author
+fn print_commit_stats(stat: &CommitStats, time: &CommitTime) {
+    for _ in 0..stat.author().len() + 4 {
+        print!("=");
+    }
+    println!();
+    println!("| {} |", stat.author());
+    for _ in 0..stat.author().len() + 4 {
+        print!("=");
+    }
+    println!();
+
+    println!("Commits: {} commits", stat.count);
+    println!("Time spent: {}", get_humanized_minutes(time.time as i64));
+
+    let ratio = stat.deletions as f64 / stat.insertions as f64;
+    print!(
+        "LOC: +{}/-{} ({:.2}%)",
+        stat.insertions,
+        stat.deletions,
+        ratio * 100.0
+    );
+
+    if ratio < INSERTION_DELETION_WARNING_RATIO {
+        println!(" (!)");
+    } else {
+        println!();
     }
 }
 

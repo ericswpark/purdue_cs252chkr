@@ -5,6 +5,8 @@ use sentry::ClientInitGuard;
 use std::collections::HashMap;
 
 #[derive(Parser, Debug)]
+#[command(name = "cs252chkr")]
+#[command(author = "Eric Park (@ericswpark)")]
 struct Cli {
     /// Enable bug and crash reports to Sentry
     #[arg(short = 'c', long)]

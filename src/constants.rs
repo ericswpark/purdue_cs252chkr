@@ -12,6 +12,10 @@ pub const SESSION_START_ADDITION_IN_MINUTES: usize = 15;
 /// If no commits are made for the specified duration, the next commit starts a new coding session.
 pub const MAX_SESSION_IDLE_IN_MINUTES: usize = SESSION_START_ADDITION_IN_MINUTES;
 
+/// Threshold of insertion/deletion ratio to consider strange
+///
+/// If an author's insertion/deletion ratio is below this threshold, then a warning symbol is
+/// displayed next to their statistics.
 pub const INSERTION_DELETION_WARNING_RATIO: f64 = 0.6;
 
 /// Sentry DSN URL

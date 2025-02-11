@@ -1,7 +1,7 @@
-use cs252chkr::*;
-use std::collections::HashMap;
-use sentry::ClientInitGuard;
 use cs252chkr::constants::SENTRY_DSN_URL;
+use cs252chkr::*;
+use sentry::ClientInitGuard;
+use std::collections::HashMap;
 
 fn main() {
     // Initialize Sentry - bug and crash report
@@ -60,8 +60,11 @@ where
 /// The returned guard must be placed within a variable that should stay in scope throughout program
 /// execution! Otherwise, panics will not be caught by Sentry.
 fn sentry_init() -> ClientInitGuard {
-    sentry::init((SENTRY_DSN_URL, sentry::ClientOptions {
-        release: sentry::release_name!(),
-        ..Default::default()
-    }))
+    sentry::init((
+        SENTRY_DSN_URL,
+        sentry::ClientOptions {
+            release: sentry::release_name!(),
+            ..Default::default()
+        },
+    ))
 }

@@ -14,14 +14,14 @@ struct Cli {
 }
 
 fn main() {
-    let _guard;
+    let _sentry_guard;
 
     // Get commandline arguments
     let cli = Cli::parse();
 
     if cli.enable_crash_reports {
         println!("Bug/crash reports to Sentry has been enabled!");
-        _guard = sentry_init();
+        _sentry_guard = sentry_init();
     }
 
     // Attempt to open repository in current directory, or start walking up

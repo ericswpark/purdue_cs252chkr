@@ -37,6 +37,7 @@ fn main() {
 /// * `stat` - commit statistics to print
 /// * `time` - time spent information for author
 fn print_commit_stats(stat: &CommitStats, time: &CommitTime) {
+    // Pretty-print author name in border
     for _ in 0..stat.author().len() + 4 {
         print!("=");
     }
@@ -47,9 +48,11 @@ fn print_commit_stats(stat: &CommitStats, time: &CommitTime) {
     }
     println!();
 
+    // Print basic commit stats
     println!("Commits: {} commits", stat.count);
     println!("Time spent: {}", get_humanized_minutes(time.time as i64));
 
+    // Calculate ratio of insertions and deletions and print LOC stats
     let ratio = stat.deletions as f64 / stat.insertions as f64;
     print!(
         "LOC: +{}/-{} ({:.2}%)",
@@ -58,6 +61,7 @@ fn print_commit_stats(stat: &CommitStats, time: &CommitTime) {
         ratio * 100.0
     );
 
+    // Warn if LOC ratio is strangely low
     if ratio < INSERTION_DELETION_WARNING_RATIO {
         println!(" (!)");
     } else {

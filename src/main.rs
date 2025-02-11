@@ -1,7 +1,15 @@
+mod constants;
+
+use constants::SENTRY_DSN_URL;
+
 use cs252chkr::*;
 use std::collections::HashMap;
+use sentry::ClientInitGuard;
 
 fn main() {
+    // Initialize Sentry - bug and crash report
+    let _guard = sentry_init();
+
     // Attempt to open repository in current directory, or start walking up
     let repo = get_repository();
     let initial_commit = get_initial_commit(&repo).expect("Failed to get initial commit");
@@ -48,4 +56,15 @@ where
     }
 
     result
+}
+
+/// Initializes Sentry, a bug report platform
+///
+/// The returned guard must be placed within a variable that should stay in scope throughout program
+/// execution! Otherwise, panics will not be caught by Sentry.
+fn sentry_init() -> ClientInitGuard {
+    sentry::init((SENTRY_DSN_URL, sentry::ClientOptions {
+        release: sentry::release_name!(),
+        ..Default::default()
+    }))
 }

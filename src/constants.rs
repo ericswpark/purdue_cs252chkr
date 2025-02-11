@@ -11,3 +11,8 @@ pub const SESSION_START_ADDITION_IN_MINUTES: usize = 15;
 ///
 /// If no commits are made for the specified duration, the next commit starts a new coding session.
 pub const MAX_SESSION_IDLE_IN_MINUTES: usize = SESSION_START_ADDITION_IN_MINUTES;
+
+/// Sentry DSN URL
+///
+/// Used by Sentry to send bug and crash reports
+pub const SENTRY_DSN_URL: &str = "https://ef5e99a8089c74d5c41a66197d8c1d45@o444286.ingest.us.sentry.io/4508797911957504";

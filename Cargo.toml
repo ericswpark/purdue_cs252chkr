@@ -7,3 +7,4 @@ edition = "2021"
 chrono = "0.4.39"
 chrono-humanize = "0.2.3"
 git2 = { version = "0.20.0", default-features = false }
+sentry = "0.36.0"

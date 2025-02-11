@@ -81,25 +81,8 @@ pub fn get_commit_stats(repo: &Repository) -> Result<Vec<CommitStats>, Error> {
         // commit
         let author = commit.author().name().unwrap_or("-").to_string();
 
-        // Get commit tree for diffing with previous commit
-        let commit_tree = commit.tree()?;
-        let mut insertions = 0;
-        let mut deletions = 0;
-        // Only get insertion/deletion count if parent commit exists
-        if let Some(parent_tree) = commit.parent(0).ok().as_ref().and_then(|c| c.tree().ok()) {
-            let diff = repo.diff_tree_to_tree(
-                Some(&parent_tree),
-                Some(&commit_tree),
-                Some(&mut DiffOptions::new()),
-            );
-            if let Ok(diff) = diff {
-                let stats = diff.stats();
-                if let Ok(stats) = stats {
-                    insertions = stats.insertions();
-                    deletions = stats.deletions();
-                }
-            }
-        }
+        // Get stats
+        let diff_stats = get_diff_stats(repo, &commit).unwrap_or((0, 0));
 
         // Insert count into commit_map
         let entry = commit_map.entry(author.clone()).or_insert(CommitStats {
@@ -110,8 +93,8 @@ pub fn get_commit_stats(repo: &Repository) -> Result<Vec<CommitStats>, Error> {
         });
 
         entry.count += 1;
-        entry.insertions += insertions;
-        entry.deletions += deletions;
+        entry.insertions += diff_stats.0;
+        entry.deletions += diff_stats.1;
     }
 
     // Collect entries from HashMap into array
@@ -120,6 +103,31 @@ pub fn get_commit_stats(repo: &Repository) -> Result<Vec<CommitStats>, Error> {
     commit_map.sort_by(|a, b| b.count.cmp(&a.count));
 
     Ok(commit_map)
+}
+
+/// Gets the commit diff statistics (insertions and deletions)
+///
+/// If there is no parent commit, or if the associated tree cannot be fetched, None will be
+/// returned.
+///
+/// * `repo` - Repository reference where `commit` is
+/// * `commit` - Commit reference of the commit that resides in `repo` where the diff stats should
+///              be extracted from
+fn get_diff_stats(repo: &Repository, commit: &Commit) -> Option<(usize, usize)> {
+    let parent_commit = commit.parent(0).ok()?;
+
+    let commit_tree = commit.tree().ok()?;
+    let parent_tree = parent_commit.tree().ok()?;
+    let diff = repo
+        .diff_tree_to_tree(
+            Some(&parent_tree),
+            Some(&commit_tree),
+            Some(&mut DiffOptions::new()),
+        )
+        .ok()?;
+    let stats = diff.stats().ok()?;
+
+    Some((stats.insertions(), stats.deletions()))
 }
 
 /// Structure to store git working time estimate for each author

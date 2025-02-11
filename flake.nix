@@ -22,6 +22,10 @@
                         gcc
                         rustfmt
                         clippy
+
+                        # Used by OpenSSL (many dependencies)
+                        openssl
+                        pkg-config
                     ];
                     RUST_SRC_PATH = "${rust.packages.stable.rustPlatform.rustLibSrc}";
                 };

@@ -1,10 +1,7 @@
-mod constants;
-
-use constants::SENTRY_DSN_URL;
-
 use cs252chkr::*;
 use std::collections::HashMap;
 use sentry::ClientInitGuard;
+use cs252chkr::constants::SENTRY_DSN_URL;
 
 fn main() {
     // Initialize Sentry - bug and crash report

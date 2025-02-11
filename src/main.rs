@@ -1,11 +1,26 @@
+use clap::Parser;
 use cs252chkr::constants::{INSERTION_DELETION_WARNING_RATIO, SENTRY_DSN_URL};
 use cs252chkr::*;
 use sentry::ClientInitGuard;
 use std::collections::HashMap;
 
+#[derive(Parser, Debug)]
+struct Cli {
+    /// Enable bug and crash reports to Sentry
+    #[arg(short = 'c', long)]
+    enable_crash_reports: bool,
+}
+
 fn main() {
-    // Initialize Sentry - bug and crash report
-    let _guard = sentry_init();
+    let _guard;
+
+    // Get commandline arguments
+    let cli = Cli::parse();
+
+    if cli.enable_crash_reports {
+        println!("Bug/crash reports to Sentry has been enabled!");
+        _guard = sentry_init();
+    }
 
     // Attempt to open repository in current directory, or start walking up
     let repo = get_repository();

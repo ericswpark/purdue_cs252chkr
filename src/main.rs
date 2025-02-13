@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use clap::Parser;
 use cs252chkr::constants::{INSERTION_DELETION_WARNING_RATIO, SENTRY_DSN_URL};
 use cs252chkr::*;
@@ -13,7 +14,7 @@ struct Cli {
     enable_crash_reports: bool,
 }
 
-fn main() {
+fn main() -> Result<()> {
     let _sentry_guard;
 
     // Get commandline arguments
@@ -26,11 +27,12 @@ fn main() {
 
     // Attempt to open repository in current directory, or start walking up
     let repo = get_repository();
-    let initial_commit = get_initial_commit(&repo).expect("Failed to get initial commit");
+    let initial_commit = get_initial_commit(&repo).context("Failed to get initial commit")?;
 
     // Fetch initial commit time from repository
     let initial_commit_time_raw = initial_commit.time().seconds();
-    let initial_commit_time = get_localized_time(initial_commit_time_raw).unwrap();
+    let initial_commit_time = get_localized_time(initial_commit_time_raw)
+        .context("Failed to get localized time for initial commit")?;
     println!(
         "Initial commit was made at {} ({})",
         get_formatted_time(initial_commit_time),
@@ -38,12 +40,14 @@ fn main() {
     );
 
     // Fetch author metadata (commit count, total session duration) from repository
-    let commit_counts = get_commit_stats(&repo).expect("Failed to get commit counts");
-    let estimates = get_estimate_minutes(&repo).expect("Failed to get estimate minutes");
+    let commit_counts = get_commit_stats(&repo).context("Failed to get commit counts")?;
+    let estimates = get_estimate_minutes(&repo).context("Failed to get estimate minutes")?;
     let metadata = zip_by_author(commit_counts, estimates);
     for entry in metadata {
         print_commit_stats(&entry.1 .0, &entry.1 .1);
     }
+
+    Ok(())
 }
 
 /// Formats and prints commit statistics

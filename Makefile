@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := all
+
 CARGO = cargo
 BUILD_OPTS = --release
 DEV_BUILD_OPTS =

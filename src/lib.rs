@@ -8,6 +8,7 @@ use chrono_humanize::HumanTime;
 use chrono_humanize::Tense::Present;
 use git2::{Commit, DiffOptions, Error, Repository};
 use std::collections::HashMap;
+use crate::constants::CS252_USER_NAME;
 
 /// Shared commit metadata trait for zipping and printing metadata information
 pub trait CommitMetadata {
@@ -40,7 +41,7 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
             let commit = repo.find_commit(first_commit_id?)?;
 
             // If the author is the CS252 initial commit, skip it
-            if commit.author().name().unwrap().to_string() == "CS252" {
+            if commit.author().name().unwrap().to_string() == CS252_USER_NAME {
                 continue;
             } else {
                 return Ok(commit);
@@ -74,6 +75,8 @@ impl CommitMetadata for CommitStats {
 }
 
 /// Get the commit statistics for each author in the given repository
+///
+/// The CS252 user will be filtered out!
 ///
 /// * `repo`: Repository reference to find commits and authors from
 pub fn get_commit_stats(repo: &Repository) -> Result<Vec<CommitStats>, Error> {
@@ -111,6 +114,10 @@ pub fn get_commit_stats(repo: &Repository) -> Result<Vec<CommitStats>, Error> {
 
     // Collect entries from HashMap into array
     let mut commit_map: Vec<_> = commit_map.into_iter().map(|x| x.1).collect();
+
+    // Filter out the CS 252 user
+    commit_map = commit_map.into_iter().filter(|x| x.author != CS252_USER_NAME).collect();
+
     // Sort by number of commits (descending order)
     commit_map.sort_by(|a, b| b.count.cmp(&a.count));
 

@@ -18,6 +18,9 @@ pub const MAX_SESSION_IDLE_IN_MINUTES: usize = SESSION_START_ADDITION_IN_MINUTES
 /// displayed next to their statistics.
 pub const INSERTION_DELETION_WARNING_RATIO: f64 = 0.6;
 
+/// CS 252 user name (for filtering out of statistics)
+pub const CS252_USER_NAME: &str = "CS252";
+
 /// Sentry DSN URL
 ///
 /// Used by Sentry to send bug and crash reports

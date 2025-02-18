@@ -2,13 +2,13 @@ pub mod constants;
 
 use constants::{MAX_SESSION_IDLE_IN_MINUTES, SESSION_START_ADDITION_IN_MINUTES};
 
+use crate::constants::CS252_USER_NAME;
 use chrono::{DateTime, Duration, Local, Utc};
 use chrono_humanize::Accuracy::Precise;
 use chrono_humanize::HumanTime;
 use chrono_humanize::Tense::Present;
 use git2::{Commit, DiffOptions, Error, Repository};
 use std::collections::HashMap;
-use crate::constants::CS252_USER_NAME;
 
 /// Shared commit metadata trait for zipping and printing metadata information
 pub trait CommitMetadata {
@@ -116,7 +116,10 @@ pub fn get_commit_stats(repo: &Repository) -> Result<Vec<CommitStats>, Error> {
     let mut commit_map: Vec<_> = commit_map.into_iter().map(|x| x.1).collect();
 
     // Filter out the CS 252 user
-    commit_map = commit_map.into_iter().filter(|x| x.author != CS252_USER_NAME).collect();
+    commit_map = commit_map
+        .into_iter()
+        .filter(|x| x.author != CS252_USER_NAME)
+        .collect();
 
     // Sort by number of commits (descending order)
     commit_map.sort_by(|a, b| b.count.cmp(&a.count));

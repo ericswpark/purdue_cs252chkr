@@ -23,7 +23,7 @@ Are you sure you're in the project folder?",
     )
 }
 
-/// Gets the initial commit from the provided repository
+/// Gets the initial commit from the provided repository, ignoring the CS252 user
 ///
 /// * `repo` - Repository reference to fetch the initial commit from
 pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
@@ -34,10 +34,22 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
     revwalk.set_sorting(git2::Sort::REVERSE)?;
 
     // Checks if the first commit exists or return error if there are no commits
-    if let Some(first_commit_id) = revwalk.next() {
-        // Find commit using commit ID
-        return repo.find_commit(first_commit_id?);
+    loop {
+        if let Some(first_commit_id) = revwalk.next() {
+            // Find commit using commit ID
+            let commit = repo.find_commit(first_commit_id?)?;
+
+            // If the author is the CS252 initial commit, skip it
+            if commit.author().name().unwrap().to_string() == "CS252" {
+                continue;
+            } else {
+                return Ok(commit);
+            }
+        } else {
+            break;
+        }
     }
+
     Err(Error::from_str(
         "This repository does not have any commits!",
     ))

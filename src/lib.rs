@@ -35,20 +35,16 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
     revwalk.set_sorting(git2::Sort::REVERSE)?;
 
     // Checks if the first commit exists or return error if there are no commits
-    loop {
-        if let Some(first_commit_id) = revwalk.next() {
-            // Find commit using commit ID
-            let commit = repo.find_commit(first_commit_id?)?;
+    for first_commit_id in revwalk {
+        // Find commit using commit ID
+        let commit = repo.find_commit(first_commit_id?)?;
 
-            // If the author is the CS252 initial commit, skip it
-            if commit.author().name().unwrap().to_string() == CS252_USER_NAME {
-                continue;
-            } else {
-                return Ok(commit);
-            }
-        } else {
-            break;
+        // If the author is the CS252 initial commit, skip it
+        if commit.author().name().unwrap() == CS252_USER_NAME {
+            continue;
         }
+
+        return Ok(commit);
     }
 
     Err(Error::from_str(
@@ -116,10 +112,7 @@ pub fn get_commit_stats(repo: &Repository) -> Result<Vec<CommitStats>, Error> {
     let mut commit_map: Vec<_> = commit_map.into_iter().map(|x| x.1).collect();
 
     // Filter out the CS 252 user
-    commit_map = commit_map
-        .into_iter()
-        .filter(|x| x.author != CS252_USER_NAME)
-        .collect();
+    commit_map.retain(|x| x.author != CS252_USER_NAME);
 
     // Sort by number of commits (descending order)
     commit_map.sort_by(|a, b| b.count.cmp(&a.count));

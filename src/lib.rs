@@ -2,7 +2,7 @@ pub mod constants;
 
 use constants::{MAX_SESSION_IDLE_IN_MINUTES, SESSION_START_ADDITION_IN_MINUTES};
 
-use crate::constants::CS252_USER_NAME;
+use crate::constants::{CS252_USER_NAME, LOC_PATHSPEC};
 use chrono::{DateTime, Duration, Local, Utc};
 use chrono_humanize::Accuracy::Precise;
 use chrono_humanize::HumanTime;
@@ -133,11 +133,14 @@ fn get_diff_stats(repo: &Repository, commit: &Commit) -> Option<(usize, usize)> 
 
     let commit_tree = commit.tree().ok()?;
     let parent_tree = parent_commit.tree().ok()?;
+    let mut diff_options = DiffOptions::new();
+    diff_options.pathspec(LOC_PATHSPEC);
+
     let diff = repo
         .diff_tree_to_tree(
             Some(&parent_tree),
             Some(&commit_tree),
-            Some(&mut DiffOptions::new()),
+            Some(&mut diff_options),
         )
         .ok()?;
     let stats = diff.stats().ok()?;

@@ -21,6 +21,11 @@ pub const INSERTION_DELETION_WARNING_RATIO: f64 = 0.6;
 /// CS 252 username (for filtering out of statistics)
 pub const CS252_USER_NAME: &str = "CS252";
 
+/// Files to include in the LOC statistics calculation
+///
+/// This constant conforms to Git's `pathspec`.
+pub const LOC_PATHSPEC: &str = "*.c *.cpp *.h *.sh *.y *.l";
+
 /// Sentry DSN URL
 ///
 /// Used by Sentry to send bug and crash reports

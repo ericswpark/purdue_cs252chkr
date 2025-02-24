@@ -1,8 +1,9 @@
 use crate::constants::{
     CS252_USER_NAME, LOC_PATHSPEC, MAX_SESSION_IDLE_IN_MINUTES, SESSION_START_ADDITION_IN_MINUTES,
 };
+use crate::datetime::get_time;
 use crate::structs::{CommitStats, CommitTime};
-use crate::{get_time, Error};
+use crate::Error;
 use anyhow::anyhow;
 use git2::{Commit, DiffOptions, Repository};
 use std::collections::HashMap;

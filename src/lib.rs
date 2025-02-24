@@ -23,8 +23,6 @@ pub enum Error {
     Other(#[from] anyhow::Error),
 }
 
-
-
 /// Shared commit metadata trait for zipping and printing metadata information
 pub trait CommitMetadata {
     fn author(&self) -> String;
@@ -59,7 +57,9 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
         return Ok(commit);
     }
 
-    Err(Error::from(anyhow!("This repository does not have any commits!")))
+    Err(Error::from(anyhow!(
+        "This repository does not have any commits!"
+    )))
 }
 
 /// Structure to store git commit stats for each author
@@ -350,7 +350,7 @@ where
 }
 
 /// Check the given directory's git repository for statistics and information
-pub fn check(dir: &str) -> Result<(), Error>  {
+pub fn check(dir: &str) -> Result<(), Error> {
     let repo = get_repository(dir);
     let initial_commit = get_initial_commit(&repo).context("Failed to get initial commit")?;
 

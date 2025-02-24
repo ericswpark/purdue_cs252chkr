@@ -25,8 +25,6 @@ pub enum Error {
     CommitTimeError,
     #[error(transparent)]
     GitError(#[from] git2::Error),
-    #[error("unknown error")]
-    Unknown,
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }

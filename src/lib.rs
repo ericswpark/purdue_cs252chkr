@@ -3,12 +3,27 @@ pub mod constants;
 use constants::{MAX_SESSION_IDLE_IN_MINUTES, SESSION_START_ADDITION_IN_MINUTES};
 
 use crate::constants::{CS252_USER_NAME, INSERTION_DELETION_WARNING_RATIO, LOC_PATHSPEC};
+use anyhow::{anyhow, Context};
 use chrono::{DateTime, Duration, Local, Utc};
 use chrono_humanize::Accuracy::Precise;
 use chrono_humanize::HumanTime;
 use chrono_humanize::Tense::Present;
-use git2::{Commit, DiffOptions, Error, Repository};
+use git2::{Commit, DiffOptions, Repository};
 use std::collections::HashMap;
+use thiserror::Error;
+
+/// Library error type
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error(transparent)]
+    GitError(#[from] git2::Error),
+    #[error("unknown error")]
+    Unknown,
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
+
+
 
 /// Shared commit metadata trait for zipping and printing metadata information
 pub trait CommitMetadata {
@@ -47,9 +62,7 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
         return Ok(commit);
     }
 
-    Err(Error::from_str(
-        "This repository does not have any commits!",
-    ))
+    Err(Error::from(anyhow!("This repository does not have any commits!")))
 }
 
 /// Structure to store git commit stats for each author
@@ -196,12 +209,12 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<CommitTime>, Error>
         // Get time of the previous commit made by this author
         let previous_commit_seconds = entry.0.to_owned().unwrap().time().seconds();
         let previous_commit_time = get_time(previous_commit_seconds)
-            .ok_or(Error::from_str("Can't fetch previous commit time"))?;
+            .ok_or(Error::from(anyhow!("Can't fetch previous commit time")))?;
 
         // Get time of the current commit
         let commit_seconds = commit.time().seconds();
         let commit_time =
-            get_time(commit_seconds).ok_or(Error::from_str("Can't fetch commit time"))?;
+            get_time(commit_seconds).ok_or(Error::from(anyhow!("Can't fetch commit time")))?;
 
         // Get time difference between the two commits above
         let time_diff = previous_commit_time - commit_time;

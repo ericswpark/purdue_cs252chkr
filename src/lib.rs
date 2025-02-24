@@ -1,8 +1,10 @@
 pub mod constants;
+pub mod structs;
 
 use constants::{MAX_SESSION_IDLE_IN_MINUTES, SESSION_START_ADDITION_IN_MINUTES};
 
 use crate::constants::{CS252_USER_NAME, INSERTION_DELETION_WARNING_RATIO, LOC_PATHSPEC};
+use crate::structs::{CommitStats, CommitTime};
 use anyhow::{anyhow, Context};
 use chrono::{DateTime, Duration, Local, Utc};
 use chrono_humanize::Accuracy::Precise;
@@ -60,24 +62,6 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
     Err(Error::from(anyhow!(
         "This repository does not have any commits!"
     )))
-}
-
-/// Structure to store git commit stats for each author
-pub struct CommitStats {
-    // Author name
-    author: String,
-    // Author commit count
-    pub count: usize,
-    // Line insertions
-    pub insertions: usize,
-    // Line deletions
-    pub deletions: usize,
-}
-
-impl CommitMetadata for CommitStats {
-    fn author(&self) -> String {
-        self.author.clone()
-    }
 }
 
 /// Get the commit statistics for each author in the given repository
@@ -156,20 +140,6 @@ fn get_diff_stats(repo: &Repository, commit: &Commit) -> Option<(usize, usize)> 
     let stats = diff.stats().ok()?;
 
     Some((stats.insertions(), stats.deletions()))
-}
-
-/// Structure to store git working time estimate for each author
-pub struct CommitTime {
-    // Author name
-    author: String,
-    // Time spent on repository (in minutes)
-    pub time: usize,
-}
-
-impl CommitMetadata for CommitTime {
-    fn author(&self) -> String {
-        self.author.clone()
-    }
 }
 
 /// Get the estimate of working hours spent on the repository

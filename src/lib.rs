@@ -30,13 +30,10 @@ pub trait CommitMetadata {
     fn author(&self) -> String;
 }
 
-/// Returns a git2 Repository object pointing to the repository in the current directory (or the
-/// parent directories of the current directory)
-pub fn get_repository() -> Repository {
-    Repository::discover(".").expect(
-        "Can't find git repository (attempted traversal to root).
-Are you sure you're in the project folder?",
-    )
+/// Returns a git2 Repository object pointing to the repository in the given directory (or the
+/// parent directories of the given directory)
+pub fn get_repository(dir: &str) -> Repository {
+    Repository::discover(dir).expect("Given folder (or parent folders) is not a git repository!")
 }
 
 /// Gets the initial commit from the provided repository, ignoring the CS252 user
@@ -350,4 +347,30 @@ where
     }
 
     result
+}
+
+/// Check the given directory's git repository for statistics and information
+pub fn check(dir: &str) -> Result<(), Error>  {
+    let repo = get_repository(dir);
+    let initial_commit = get_initial_commit(&repo).context("Failed to get initial commit")?;
+
+    // Fetch initial commit time from repository
+    let initial_commit_time_raw = initial_commit.time().seconds();
+    let initial_commit_time = get_localized_time(initial_commit_time_raw)
+        .context("Failed to get localized time for initial commit")?;
+    println!(
+        "Initial commit was made at {} ({})",
+        get_formatted_time(initial_commit_time),
+        get_humanized_time(initial_commit_time)
+    );
+
+    // Fetch author metadata (commit count, total session duration) from repository
+    let commit_counts = get_commit_stats(&repo).context("Failed to get commit counts")?;
+    let estimates = get_estimate_minutes(&repo).context("Failed to get estimate minutes")?;
+    let metadata = zip_by_author(commit_counts, estimates);
+    for entry in metadata {
+        print_commit_stats(&entry.1 .0, &entry.1 .1);
+    }
+
+    Ok(())
 }

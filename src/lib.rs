@@ -17,6 +17,12 @@ use thiserror::Error;
 /// Library error type
 #[derive(Error, Debug)]
 pub enum Error {
+    #[error("no commits")]
+    NoCommits,
+    #[error("can't fetch previous commit time")]
+    PreviousCommitTimeError,
+    #[error("can't fetch commit time")]
+    CommitTimeError,
     #[error(transparent)]
     GitError(#[from] git2::Error),
     #[error("unknown error")]

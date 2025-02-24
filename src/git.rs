@@ -4,7 +4,7 @@ use crate::constants::{
 use crate::datetime::get_time;
 use crate::structs::{CommitStats, CommitTime};
 use crate::Error;
-use anyhow::anyhow;
+use crate::Error::{CommitTimeError, NoCommits, PreviousCommitTimeError};
 use git2::{Commit, DiffOptions, Repository};
 use std::collections::HashMap;
 
@@ -37,9 +37,7 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
         return Ok(commit);
     }
 
-    Err(Error::from(anyhow!(
-        "This repository does not have any commits!"
-    )))
+    Err(NoCommits)
 }
 
 /// Get the commit statistics for each author in the given repository
@@ -153,13 +151,12 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<CommitTime>, Error>
 
         // Get time of the previous commit made by this author
         let previous_commit_seconds = entry.0.to_owned().unwrap().time().seconds();
-        let previous_commit_time = get_time(previous_commit_seconds)
-            .ok_or(Error::from(anyhow!("Can't fetch previous commit time")))?;
+        let previous_commit_time =
+            get_time(previous_commit_seconds).ok_or(PreviousCommitTimeError)?;
 
         // Get time of the current commit
         let commit_seconds = commit.time().seconds();
-        let commit_time =
-            get_time(commit_seconds).ok_or(Error::from(anyhow!("Can't fetch commit time")))?;
+        let commit_time = get_time(commit_seconds).ok_or(CommitTimeError)?;
 
         // Get time difference between the two commits above
         let time_diff = previous_commit_time - commit_time;

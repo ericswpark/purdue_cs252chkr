@@ -4,7 +4,7 @@ pub mod git;
 pub mod structs;
 
 use crate::constants::INSERTION_DELETION_WARNING_RATIO;
-use crate::git::{get_commit_stats, get_estimate_minutes, get_initial_commit, get_repository};
+use crate::git::{get_commit_stats, get_estimate_minutes, get_initial_commit, get_repository, print_partial_logs};
 use crate::structs::{CommitStats, CommitTime};
 use anyhow::Context;
 
@@ -96,7 +96,10 @@ where
 }
 
 /// Check the given directory's git repository for statistics and information
-pub fn check(dir: &str) -> Result<(), Error> {
+///
+/// * `dir` - directory with git repository to check
+/// * `partial_logs` - whether to show git partial logs (`git log -p` equivalent)
+pub fn check(dir: &str, partial_logs: bool) -> Result<(), Error> {
     let repo = get_repository(dir);
     let initial_commit = get_initial_commit(&repo).context("Failed to get initial commit")?;
 
@@ -116,6 +119,10 @@ pub fn check(dir: &str) -> Result<(), Error> {
     let metadata = zip_by_author(commit_counts, estimates);
     for entry in metadata {
         print_commit_stats(&entry.1 .0, &entry.1 .1);
+    }
+
+    if partial_logs {
+        print_partial_logs(&repo).context("Failed to print partial logs")?;
     }
 
     Ok(())

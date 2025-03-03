@@ -11,6 +11,9 @@ struct Cli {
     /// Enable bug and crash reports to Sentry
     #[arg(short = 'c', long)]
     enable_crash_reports: bool,
+    /// Show git partial logs (`git log -p`). Warning: generates a lot of output
+    #[arg(short = 'p', long)]
+    git_log_partial: bool,
 }
 
 fn main() -> Result<()> {
@@ -25,7 +28,7 @@ fn main() -> Result<()> {
     }
 
     // Run checks against repository in current directory
-    check(".").context("Failed to run checks on current directory's git repository")?;
+    check(".", cli.git_log_partial).context("Failed to run checks on current directory's git repository")?;
 
     Ok(())
 }

@@ -5,7 +5,7 @@ use crate::datetime::get_time;
 use crate::structs::{CommitStats, CommitTime};
 use crate::Error;
 use crate::Error::{CommitTimeError, NoCommits, PreviousCommitTimeError};
-use git2::{Commit, DiffOptions, Repository};
+use git2::{Commit, DiffFormat, DiffOptions, Repository};
 use std::collections::HashMap;
 
 /// Returns a git2 Repository object pointing to the repository in the given directory (or the
@@ -187,4 +187,50 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<CommitTime>, Error>
     commit_map.sort_by(|a, b| b.time.cmp(&a.time));
 
     Ok(commit_map)
+}
+
+
+/// Prints git partial logs for each commit in the supplied repository
+///
+/// This function is equivalent to git's `log -p` subcommand.
+///
+/// * `repo` - repository to print the commit partial logs from
+pub fn print_partial_logs(repo: &Repository) -> Result<(), Error> {
+    // Create git revwalk to iterate over the commits in the provided repository
+    let mut revwalk = repo.revwalk()?;
+    // Set options for iteration
+    revwalk.push_head()?;
+    revwalk.set_sorting(git2::Sort::REVERSE & git2::Sort::TIME)?;
+
+    // For each commit ID found during iteration...
+    for oid in revwalk {
+        let commit = repo.find_commit(oid?)?;
+        let parent_commit = commit.parent(0);
+        if parent_commit.is_err() {
+            // Initial commit with no parent
+            continue;
+        }
+        let parent_commit = parent_commit?;
+
+        let commit_tree = commit.tree()?;
+        let parent_tree = parent_commit.tree()?;
+        let mut diff_options = DiffOptions::new();
+        diff_options.pathspec(LOC_PATHSPEC);
+
+        let diff = repo
+            .diff_tree_to_tree(
+                Some(&parent_tree),
+                Some(&commit_tree),
+                Some(&mut diff_options),
+            )?;
+        diff.print(DiffFormat::Patch, |_delta, _hunk, line| {
+            match line.origin() {
+                ' ' | '+' | '-' => print!("{}", line.origin()),
+                _ => {}
+            }
+            print!("{}", std::str::from_utf8(line.content()).unwrap());
+            true
+        })?;
+    }
+    Ok(())
 }

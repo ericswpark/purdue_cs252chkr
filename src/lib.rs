@@ -4,7 +4,9 @@ pub mod git;
 pub mod structs;
 
 use crate::constants::INSERTION_DELETION_WARNING_RATIO;
-use crate::git::{get_commit_stats, get_estimate_minutes, get_initial_commit, get_repository, print_partial_logs};
+use crate::git::{
+    get_commit_stats, get_estimate_minutes, get_initial_commit, get_repository, print_partial_logs,
+};
 use crate::structs::{CommitStats, CommitTime};
 use anyhow::Context;
 

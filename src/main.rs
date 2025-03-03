@@ -28,7 +28,8 @@ fn main() -> Result<()> {
     }
 
     // Run checks against repository in current directory
-    check(".", cli.git_log_partial).context("Failed to run checks on current directory's git repository")?;
+    check(".", cli.git_log_partial)
+        .context("Failed to run checks on current directory's git repository")?;
 
     Ok(())
 }

@@ -189,7 +189,6 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<CommitTime>, Error>
     Ok(commit_map)
 }
 
-
 /// Prints git partial logs for each commit in the supplied repository
 ///
 /// This function is equivalent to git's `log -p` subcommand.
@@ -217,12 +216,11 @@ pub fn print_partial_logs(repo: &Repository) -> Result<(), Error> {
         let mut diff_options = DiffOptions::new();
         diff_options.pathspec(LOC_PATHSPEC);
 
-        let diff = repo
-            .diff_tree_to_tree(
-                Some(&parent_tree),
-                Some(&commit_tree),
-                Some(&mut diff_options),
-            )?;
+        let diff = repo.diff_tree_to_tree(
+            Some(&parent_tree),
+            Some(&commit_tree),
+            Some(&mut diff_options),
+        )?;
         diff.print(DiffFormat::Patch, |_delta, _hunk, line| {
             match line.origin() {
                 ' ' | '+' | '-' => print!("{}", line.origin()),

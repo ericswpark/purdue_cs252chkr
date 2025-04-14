@@ -5,6 +5,7 @@ use crate::datetime::get_time;
 use crate::structs::{CommitStats, CommitTime};
 use crate::Error;
 use crate::Error::{CommitTimeError, NoCommits, PreviousCommitTimeError};
+use color_print::cprint;
 use git2::{Commit, DiffFormat, DiffOptions, Repository};
 use std::collections::HashMap;
 
@@ -223,10 +224,20 @@ pub fn print_partial_logs(repo: &Repository) -> Result<(), Error> {
         )?;
         diff.print(DiffFormat::Patch, |_delta, _hunk, line| {
             match line.origin() {
-                ' ' | '+' | '-' => print!("{}", line.origin()),
-                _ => {}
+                ' ' => {
+                    print!("{}", line.origin());
+                    print!("{}", std::str::from_utf8(line.content()).unwrap());
+                },
+                '+' => {
+                    cprint!("<green>{}</green>", line.origin());
+                    cprint!("<green>{}</green>", std::str::from_utf8(line.content()).unwrap());
+                },
+                '-' => {
+                    cprint!("<red>{}</red>", line.origin());
+                    cprint!("<red>{}</red>", std::str::from_utf8(line.content()).unwrap());
+                },
+                _ => {},
             }
-            print!("{}", std::str::from_utf8(line.content()).unwrap());
             true
         })?;
     }

@@ -101,7 +101,8 @@ where
 ///
 /// * `dir` - directory with git repository to check
 /// * `partial_logs` - whether to show git partial logs (`git log -p` equivalent)
-pub fn check(dir: &str, partial_logs: bool) -> Result<(), Error> {
+/// * `ignore_pathspec` - whether to ignore pathspec when considering source files
+pub fn check(dir: &str, partial_logs: bool, ignore_pathspec: bool) -> Result<(), Error> {
     let repo = get_repository(dir);
     let initial_commit = get_initial_commit(&repo).context("Failed to get initial commit")?;
 
@@ -116,7 +117,7 @@ pub fn check(dir: &str, partial_logs: bool) -> Result<(), Error> {
     );
 
     // Fetch author metadata (commit count, total session duration) from repository
-    let commit_counts = get_commit_stats(&repo).context("Failed to get commit counts")?;
+    let commit_counts = get_commit_stats(&repo, ignore_pathspec).context("Failed to get commit counts")?;
     let estimates = get_estimate_minutes(&repo).context("Failed to get estimate minutes")?;
     let metadata = zip_by_author(commit_counts, estimates);
     for entry in metadata {
@@ -124,7 +125,7 @@ pub fn check(dir: &str, partial_logs: bool) -> Result<(), Error> {
     }
 
     if partial_logs {
-        print_partial_logs(&repo).context("Failed to print partial logs")?;
+        print_partial_logs(&repo, ignore_pathspec).context("Failed to print partial logs")?;
     }
 
     Ok(())

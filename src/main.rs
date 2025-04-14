@@ -14,6 +14,9 @@ struct Cli {
     /// Show git partial logs (`git log -p`). Warning: generates a lot of output
     #[arg(short = 'p', long)]
     git_log_partial: bool,
+    /// Ignore pathspec when considering source files
+    #[arg(long)]
+    ignore_pathspec: bool,
 }
 
 fn main() -> Result<()> {
@@ -28,7 +31,7 @@ fn main() -> Result<()> {
     }
 
     // Run checks against repository in current directory
-    check(".", cli.git_log_partial)
+    check(".", cli.git_log_partial, cli.ignore_pathspec)
         .context("Failed to run checks on current directory's git repository")?;
 
     Ok(())

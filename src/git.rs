@@ -1,11 +1,11 @@
 use crate::constants::{
     CS252_USER_NAME, LOC_PATHSPEC, MAX_SESSION_IDLE_IN_MINUTES, SESSION_START_ADDITION_IN_MINUTES,
 };
-use crate::datetime::get_time;
+use crate::datetime::{get_formatted_time, get_localized_time, get_time};
 use crate::structs::{CommitStats, CommitTime};
 use crate::Error;
 use crate::Error::{CommitTimeError, NoCommits, PreviousCommitTimeError};
-use color_print::cprint;
+use color_print::{cprint, cprintln};
 use git2::{Commit, DiffFormat, DiffOptions, Repository};
 use std::collections::HashMap;
 
@@ -217,6 +217,12 @@ pub fn print_partial_logs(repo: &Repository, ignore_pathspec: bool) -> Result<()
     // For each commit ID found during iteration...
     for oid in revwalk {
         let commit = repo.find_commit(oid?)?;
+
+        // Print additional metadata about the commit like git does
+        cprintln!("<yellow>commit {}</yellow>", commit.id());
+        let date = get_localized_time(commit.time().seconds()).unwrap();
+        println!("Date: {}", get_formatted_time(date));
+
         let parent_commit = commit.parent(0);
         if parent_commit.is_err() {
             // Initial commit with no parent
@@ -261,6 +267,9 @@ pub fn print_partial_logs(repo: &Repository, ignore_pathspec: bool) -> Result<()
             }
             true
         })?;
+
+        // Print empty line to distinguish with next commit
+        println!();
     }
     Ok(())
 }

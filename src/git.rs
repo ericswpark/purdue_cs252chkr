@@ -1,5 +1,5 @@
 use crate::constants::{
-    CS252_USER_NAME, LOC_PATHSPEC, MAX_SESSION_IDLE_IN_MINUTES, SESSION_START_ADDITION_IN_MINUTES,
+    CS252_USER_NAME, MAX_SESSION_IDLE_IN_MINUTES, SESSION_START_ADDITION_IN_MINUTES,
 };
 use crate::datetime::{get_formatted_time, get_localized_time, get_time};
 use crate::structs::{CommitStats, CommitTime};

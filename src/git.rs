@@ -115,7 +115,7 @@ fn get_diff_stats(
     let parent_tree = parent_commit.tree().ok()?;
     let mut diff_options = DiffOptions::new();
     if !ignore_pathspec {
-        diff_options.pathspec(LOC_PATHSPEC);
+        add_pathspecs(&mut diff_options);
     }
 
     let diff = repo
@@ -229,7 +229,7 @@ pub fn print_partial_logs(repo: &Repository, ignore_pathspec: bool) -> Result<()
         let mut diff_options = DiffOptions::new();
 
         if !ignore_pathspec {
-            diff_options.pathspec(LOC_PATHSPEC);
+            add_pathspecs(&mut diff_options);
         }
 
         let diff = repo.diff_tree_to_tree(
@@ -263,4 +263,11 @@ pub fn print_partial_logs(repo: &Repository, ignore_pathspec: bool) -> Result<()
         })?;
     }
     Ok(())
+}
+
+
+fn add_pathspecs(opt: &mut DiffOptions) {
+    for pattern in LOC_PATHSPEC.split(' ') {
+        opt.pathspec(pattern);
+    }
 }

@@ -214,6 +214,14 @@ pub fn print_partial_logs(repo: &Repository, pathspec: &str) -> Result<(), Error
         let date = get_localized_time(commit.time().seconds()).unwrap();
         println!("Date: {}", get_formatted_time(date));
 
+        let stats = get_diff_stats(repo, &commit, pathspec);
+        if let Some(stats) = stats {
+            cprintln!("<green>Insertions: {}</green>", stats.0);
+            cprintln!("<red>Deletions: {}</red>", stats.1);
+        } else {
+            eprintln!("Warning: failed to get statistics for this commit.");
+        }
+
         let parent_commit = commit.parent(0);
         if parent_commit.is_err() {
             // Initial commit with no parent

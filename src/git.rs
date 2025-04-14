@@ -46,10 +46,10 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
 /// The CS252 user will be filtered out!
 ///
 /// * `repo` - Repository reference to find commits and authors from
-/// * `ignore_pathspec` - whether to ignore pathspec when considering source files
+/// * `pathspec` - pathspec to consider
 pub fn get_commit_stats(
     repo: &Repository,
-    ignore_pathspec: bool,
+    pathspec: &str,
 ) -> Result<Vec<CommitStats>, Error> {
     // Create git revwalk to iterate over the commits in the provided repository
     let mut revwalk = repo.revwalk()?;
@@ -68,7 +68,7 @@ pub fn get_commit_stats(
         let author = commit.author().name().unwrap_or("-").to_string();
 
         // Get stats
-        let diff_stats = get_diff_stats(repo, &commit, ignore_pathspec).unwrap_or((0, 0));
+        let diff_stats = get_diff_stats(repo, &commit, pathspec).unwrap_or((0, 0));
 
         // Insert count into commit_map
         let entry = commit_map.entry(author.clone()).or_insert(CommitStats {
@@ -103,20 +103,18 @@ pub fn get_commit_stats(
 /// * `repo` - Repository reference where `commit` is
 /// * `commit` - Commit reference of the commit that resides in `repo` where the diff stats should
 ///              be extracted from
-/// * `ignore_pathspec` - whether to ignore pathspec when considering source files
+/// * `pathspec` - pathspec to consider
 fn get_diff_stats(
     repo: &Repository,
     commit: &Commit,
-    ignore_pathspec: bool,
+    pathspec: &str,
 ) -> Option<(usize, usize)> {
     let parent_commit = commit.parent(0).ok()?;
 
     let commit_tree = commit.tree().ok()?;
     let parent_tree = parent_commit.tree().ok()?;
     let mut diff_options = DiffOptions::new();
-    if !ignore_pathspec {
-        add_pathspecs(&mut diff_options);
-    }
+    add_pathspecs(&mut diff_options, pathspec);
 
     let diff = repo
         .diff_tree_to_tree(
@@ -206,8 +204,8 @@ pub fn get_estimate_minutes(repo: &Repository) -> Result<Vec<CommitTime>, Error>
 /// This function is equivalent to git's `log -p` subcommand.
 ///
 /// * `repo` - repository to print the commit partial logs from
-/// * `ignore_pathspec` - whether to ignore pathspec when considering source files
-pub fn print_partial_logs(repo: &Repository, ignore_pathspec: bool) -> Result<(), Error> {
+/// * `pathspec` - pathspec to consider
+pub fn print_partial_logs(repo: &Repository, pathspec: &str) -> Result<(), Error> {
     // Create git revwalk to iterate over the commits in the provided repository
     let mut revwalk = repo.revwalk()?;
     // Set options for iteration
@@ -233,10 +231,7 @@ pub fn print_partial_logs(repo: &Repository, ignore_pathspec: bool) -> Result<()
         let commit_tree = commit.tree()?;
         let parent_tree = parent_commit.tree()?;
         let mut diff_options = DiffOptions::new();
-
-        if !ignore_pathspec {
-            add_pathspecs(&mut diff_options);
-        }
+        add_pathspecs(&mut diff_options, pathspec);
 
         let diff = repo.diff_tree_to_tree(
             Some(&parent_tree),
@@ -275,8 +270,8 @@ pub fn print_partial_logs(repo: &Repository, ignore_pathspec: bool) -> Result<()
 }
 
 
-fn add_pathspecs(opt: &mut DiffOptions) {
-    for pattern in LOC_PATHSPEC.split(' ') {
+fn add_pathspecs(opt: &mut DiffOptions, pathspec: &str) {
+    for pattern in pathspec.split(' ') {
         opt.pathspec(pattern);
     }
 }

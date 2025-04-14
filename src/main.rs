@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use cs252chkr::constants::SENTRY_DSN_URL;
+use cs252chkr::constants::{LOC_PATHSPEC, SENTRY_DSN_URL};
 use cs252chkr::*;
 use sentry::ClientInitGuard;
 
@@ -17,6 +17,8 @@ struct Cli {
     /// Ignore pathspec when considering source files
     #[arg(long)]
     ignore_pathspec: bool,
+    #[arg(conflicts_with="ignore_pathspec")]
+    pathspec: Vec<String>,
 }
 
 fn main() -> Result<()> {
@@ -25,13 +27,21 @@ fn main() -> Result<()> {
     // Get commandline arguments
     let cli = Cli::parse();
 
+    let pathspec: String = if cli.ignore_pathspec {
+        "".to_string()
+    } else if !cli.pathspec.is_empty() {
+        cli.pathspec.join(" ")
+    } else {
+        LOC_PATHSPEC.to_string()
+    };
+
     if cli.enable_crash_reports {
         println!("Bug/crash reports to Sentry has been enabled!");
         _sentry_guard = sentry_init();
     }
 
     // Run checks against repository in current directory
-    check(".", cli.git_log_partial, cli.ignore_pathspec)
+    check(".", cli.git_log_partial, &pathspec)
         .context("Failed to run checks on current directory's git repository")?;
 
     Ok(())

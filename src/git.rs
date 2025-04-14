@@ -47,10 +47,7 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
 ///
 /// * `repo` - Repository reference to find commits and authors from
 /// * `pathspec` - pathspec to consider
-pub fn get_commit_stats(
-    repo: &Repository,
-    pathspec: &str,
-) -> Result<Vec<CommitStats>, Error> {
+pub fn get_commit_stats(repo: &Repository, pathspec: &str) -> Result<Vec<CommitStats>, Error> {
     // Create git revwalk to iterate over the commits in the provided repository
     let mut revwalk = repo.revwalk()?;
     // Set options for iteration
@@ -104,11 +101,7 @@ pub fn get_commit_stats(
 /// * `commit` - Commit reference of the commit that resides in `repo` where the diff stats should
 ///              be extracted from
 /// * `pathspec` - pathspec to consider
-fn get_diff_stats(
-    repo: &Repository,
-    commit: &Commit,
-    pathspec: &str,
-) -> Option<(usize, usize)> {
+fn get_diff_stats(repo: &Repository, commit: &Commit, pathspec: &str) -> Option<(usize, usize)> {
     let parent_commit = commit.parent(0).ok()?;
 
     let commit_tree = commit.tree().ok()?;
@@ -268,7 +261,6 @@ pub fn print_partial_logs(repo: &Repository, pathspec: &str) -> Result<(), Error
     }
     Ok(())
 }
-
 
 fn add_pathspecs(opt: &mut DiffOptions, pathspec: &str) {
     for pattern in pathspec.split(' ') {

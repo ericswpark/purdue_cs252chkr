@@ -17,7 +17,7 @@ struct Cli {
     /// Ignore pathspec when considering source files
     #[arg(long)]
     ignore_pathspec: bool,
-    #[arg(conflicts_with="ignore_pathspec")]
+    #[arg(conflicts_with = "ignore_pathspec")]
     pathspec: Vec<String>,
 }
 

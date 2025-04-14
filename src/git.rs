@@ -45,7 +45,7 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
 ///
 /// The CS252 user will be filtered out!
 ///
-/// * `repo`: Repository reference to find commits and authors from
+/// * `repo` - Repository reference to find commits and authors from
 /// * `ignore_pathspec` - whether to ignore pathspec when considering source files
 pub fn get_commit_stats(
     repo: &Repository,

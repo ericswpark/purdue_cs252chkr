@@ -47,7 +47,10 @@ pub fn get_initial_commit(repo: &Repository) -> Result<Commit, Error> {
 ///
 /// * `repo`: Repository reference to find commits and authors from
 /// * `ignore_pathspec` - whether to ignore pathspec when considering source files
-pub fn get_commit_stats(repo: &Repository, ignore_pathspec: bool) -> Result<Vec<CommitStats>, Error> {
+pub fn get_commit_stats(
+    repo: &Repository,
+    ignore_pathspec: bool,
+) -> Result<Vec<CommitStats>, Error> {
     // Create git revwalk to iterate over the commits in the provided repository
     let mut revwalk = repo.revwalk()?;
     // Set options for iteration
@@ -101,7 +104,11 @@ pub fn get_commit_stats(repo: &Repository, ignore_pathspec: bool) -> Result<Vec<
 /// * `commit` - Commit reference of the commit that resides in `repo` where the diff stats should
 ///              be extracted from
 /// * `ignore_pathspec` - whether to ignore pathspec when considering source files
-fn get_diff_stats(repo: &Repository, commit: &Commit, ignore_pathspec: bool) -> Option<(usize, usize)> {
+fn get_diff_stats(
+    repo: &Repository,
+    commit: &Commit,
+    ignore_pathspec: bool,
+) -> Option<(usize, usize)> {
     let parent_commit = commit.parent(0).ok()?;
 
     let commit_tree = commit.tree().ok()?;
@@ -235,16 +242,22 @@ pub fn print_partial_logs(repo: &Repository, ignore_pathspec: bool) -> Result<()
                 ' ' => {
                     print!("{}", line.origin());
                     print!("{}", std::str::from_utf8(line.content()).unwrap());
-                },
+                }
                 '+' => {
                     cprint!("<green>{}</green>", line.origin());
-                    cprint!("<green>{}</green>", std::str::from_utf8(line.content()).unwrap());
-                },
+                    cprint!(
+                        "<green>{}</green>",
+                        std::str::from_utf8(line.content()).unwrap()
+                    );
+                }
                 '-' => {
                     cprint!("<red>{}</red>", line.origin());
-                    cprint!("<red>{}</red>", std::str::from_utf8(line.content()).unwrap());
-                },
-                _ => {},
+                    cprint!(
+                        "<red>{}</red>",
+                        std::str::from_utf8(line.content()).unwrap()
+                    );
+                }
+                _ => {}
             }
             true
         })?;

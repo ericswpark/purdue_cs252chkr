@@ -60,8 +60,8 @@ pub fn get_commit_stats(repo: &Repository, pathspec: &str) -> Result<Vec<CommitS
     for oid in revwalk {
         // Find the commit using the ID
         let commit = repo.find_commit(oid?)?;
-        // Get the author name (or set as '-' if there is no authorship info associated with the
-        // commit
+        // Get the author name (or set as '-' if there is no authorship info
+        // associated with the commit
         let author = commit.author().name().unwrap_or("-").to_string();
 
         // Get stats
@@ -94,12 +94,12 @@ pub fn get_commit_stats(repo: &Repository, pathspec: &str) -> Result<Vec<CommitS
 
 /// Gets the commit diff statistics (insertions and deletions)
 ///
-/// If there is no parent commit, or if the associated tree cannot be fetched, None will be
-/// returned.
+/// If there is no parent commit, or if the associated tree cannot be fetched,
+/// None will be returned.
 ///
 /// * `repo` - Repository reference where `commit` is
-/// * `commit` - Commit reference of the commit that resides in `repo` where the diff stats should
-///              be extracted from
+/// * `commit` - Commit reference of the commit that resides in `repo` where the
+///   diff stats should be extracted from
 /// * `pathspec` - pathspec to consider
 fn get_diff_stats(repo: &Repository, commit: &Commit, pathspec: &str) -> Option<(usize, usize)> {
     let parent_commit = commit.parent(0).ok()?;

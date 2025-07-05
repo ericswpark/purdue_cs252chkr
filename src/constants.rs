@@ -25,9 +25,3 @@ pub const CS252_USER_NAME: &str = "CS252";
 ///
 /// This constant conforms to Git's `pathspec`.
 pub const LOC_PATHSPEC: &str = "*.c *.cpp *.h *.sh *.y *.l";
-
-/// Sentry DSN URL
-///
-/// Used by Sentry to send bug and crash reports
-pub const SENTRY_DSN_URL: &str =
-    "https://ef5e99a8089c74d5c41a66197d8c1d45@o444286.ingest.us.sentry.io/4508797911957504";

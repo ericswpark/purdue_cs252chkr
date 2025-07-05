@@ -7,7 +7,7 @@ edition = "2021"
 anyhow = "1.0.95"
 chrono = "0.4.39"
 chrono-humanize = "0.2.3"
-clap = { version = "4.5.28", features = ["derive"] }
+clap = { version = "4.5.40", features = ["derive"] }
 color-print = "0.3.7"
 git2 = { version = "0.20.0", default-features = false }
 sentry = "0.36.0"
